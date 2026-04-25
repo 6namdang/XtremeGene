@@ -31,7 +31,7 @@ export function NoveltyBadge({ signal }: { signal: NoveltySignal }) {
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ring-1 ring-inset ${cfg.className}`}
     >
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-40" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-40 motion-reduce:animate-none" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
       </span>
       {cfg.label}

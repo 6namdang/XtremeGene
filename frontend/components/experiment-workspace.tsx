@@ -9,8 +9,11 @@ import {
   type ReactNode,
 } from "react";
 import {
+  ArrowUpRight,
   Beaker,
   BookOpenCheck,
+  Check,
+  ChevronRight,
   ClipboardList,
   Coins,
   FlaskConical,
@@ -23,6 +26,7 @@ import {
 import { fetchExperimentPlan, fetchLiteratureQC } from "@/lib/api-client";
 import type { ExperimentPlan, LiteratureQCResult } from "@/lib/types";
 import { NoveltyBadge, noveltyHelp } from "./novelty-badge";
+import { PaperEvidencePanel } from "./paper-evidence-panel";
 
 const SAMPLE_QUESTIONS = [
   {
@@ -150,59 +154,124 @@ export function ExperimentWorkspace() {
   }, [plan]);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      <div className="pointer-events-none absolute inset-0 hero-grid opacity-60" />
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.14),transparent_55%)]" />
+    <div className="relative min-h-dvh min-h-screen overflow-x-hidden">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-emerald-500 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-emerald-950"
+      >
+        Skip to workflow
+      </a>
 
-      <header className="relative border-b border-[var(--border)] bg-[var(--header-bg)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+      <div className="pointer-events-none absolute inset-0 hero-grid opacity-50" />
+      <div
+        className="pointer-events-none absolute inset-0 hero-aurora opacity-90"
+        aria-hidden
+      />
+
+      <nav
+        aria-label="Page"
+        className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--header-bg)]/90 backdrop-blur-xl backdrop-saturate-150"
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="group flex min-w-0 items-center gap-2.5 rounded-lg pr-2 transition-colors hover:text-[var(--foreground)]"
+          >
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--card)] text-emerald-400 shadow-[var(--shadow)] transition-transform group-hover:scale-105"
+              aria-hidden
+            >
+              <FlaskConical className="h-5 w-5" strokeWidth={1.75} />
+            </span>
+            <span className="hidden min-w-0 sm:block">
+              <span className="block truncate font-[family-name:var(--font-display)] text-sm font-semibold text-[var(--foreground)]">
+                The AI Scientist
+              </span>
+              <span className="block truncate text-xs text-[var(--muted)]">
+                XtremeGene
+              </span>
+            </span>
+          </a>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <NavJump href="#panel-question" label="Question" current={step === "input"} />
+            <span className="px-0.5 text-[var(--muted)] sm:px-1" aria-hidden>
+              <ChevronRight className="h-3.5 w-3.5 opacity-50" />
+            </span>
+            <NavJump
+              href="#panel-literature"
+              label="Literature"
+              current={step === "literature"}
+              disabled={!literature}
+            />
+            <span className="px-0.5 text-[var(--muted)] sm:px-1" aria-hidden>
+              <ChevronRight className="h-3.5 w-3.5 opacity-50" />
+            </span>
+            <NavJump
+              href="#experiment-plan"
+              label="Plan"
+              current={step === "plan"}
+              disabled={!plan}
+            />
+          </div>
+        </div>
+      </nav>
+
+      <header className="relative border-b border-[var(--border)] bg-gradient-to-b from-zinc-900/20 to-transparent">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 sm:py-12">
+          <div className="animate-fade-in">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
               Challenge 04 · The AI Scientist
             </p>
-            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
-              Hypothesis to runnable experiment
+            <h1 className="mt-2 max-w-3xl font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight tracking-tight text-[var(--foreground)] sm:text-4xl">
+              From hypothesis to a lab-ready{" "}
+              <span className="bg-gradient-to-r from-emerald-200 to-teal-300/90 bg-clip-text text-transparent">
+                experiment plan
+              </span>
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-              Literature QC, then a full operational plan—protocol, materials,
-              budget, timeline, and validation—so a lab could execute with
-              confidence.
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--muted)] sm:text-lg">
+              Literature QC, then protocol, materials, budget, timeline, and
+              validation—so your team can execute with clarity.
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-            <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-[var(--muted)] transition hover:border-zinc-600/50 hover:text-zinc-300">
               MIT Club NorCal
             </span>
-            <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-[var(--muted)] transition hover:border-zinc-600/50 hover:text-zinc-300">
               MIT Club Germany
             </span>
-            <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-emerald-200/90">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-200/95 ring-1 ring-emerald-500/15">
               Powered by Fulcrum Science
             </span>
           </div>
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <ol className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <StepPill
-            n={1}
-            title="Question"
-            active={step === "input"}
-            done={step !== "input"}
-          />
-          <StepPill
-            n={2}
-            title="Literature QC"
-            active={step === "literature"}
-            done={step === "plan"}
-          />
-          <StepPill n={3} title="Experiment plan" active={step === "plan"} />
-        </ol>
+      <main
+        id="main-content"
+        className="relative mx-auto max-w-6xl scroll-mt-28 px-4 py-8 sm:px-6 sm:py-10"
+      >
+        <StepRail
+          step={step}
+          hasLiterature={!!literature}
+          hasPlan={!!plan}
+          onStepChange={setStep}
+        />
+
+        <div className="mb-8">
+          <PaperEvidencePanel />
+        </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="space-y-6">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)] sm:p-6">
+          <section className="space-y-6" aria-label="Workflow">
+            <div
+              id="panel-question"
+              className="interactive-surface scroll-mt-32 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)] sm:p-6"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="flex items-center gap-2 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--foreground)]">
@@ -246,7 +315,7 @@ export function ExperimentWorkspace() {
                     key={s.label}
                     type="button"
                     onClick={() => setQuestion(s.text)}
-                    className="rounded-full border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] transition hover:border-emerald-500/35 hover:bg-emerald-500/5"
+                    className="rounded-full border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] transition hover:border-emerald-500/40 hover:bg-emerald-500/8 active:scale-[0.98] motion-reduce:active:scale-100"
                   >
                     {s.label}
                   </button>
@@ -258,7 +327,7 @@ export function ExperimentWorkspace() {
                   type="button"
                   disabled={!canRunQc || qcLoading}
                   onClick={runLiteratureQc}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 hover:shadow-emerald-500/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100"
                 >
                   {qcLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -286,7 +355,10 @@ export function ExperimentWorkspace() {
             </div>
 
             {literature && (
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)] sm:p-6">
+              <div
+                id="panel-literature"
+                className="animate-fade-up interactive-surface scroll-mt-32 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)] sm:p-6"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="flex items-center gap-2 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--foreground)]">
@@ -312,15 +384,21 @@ export function ExperimentWorkspace() {
                     {literature.references.map((r) => (
                       <li
                         key={r.url + r.title}
-                        className="rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-4"
+                        className="group/reference rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-4 transition hover:border-emerald-500/25"
                       >
                         <a
                           href={r.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-semibold text-emerald-300 hover:text-emerald-200"
+                          className="inline-flex items-start gap-2 text-sm font-semibold text-emerald-300 hover:text-emerald-200"
                         >
-                          {r.title}
+                          <span className="min-w-0 flex-1 leading-snug">
+                            {r.title}
+                          </span>
+                          <ArrowUpRight
+                            className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400/60 opacity-0 transition group-hover/reference:translate-x-0.5 group-hover/reference:-translate-y-0.5 group-hover/reference:opacity-100"
+                            aria-hidden
+                          />
                         </a>
                         <p className="mt-1 text-xs text-[var(--muted)]">
                           {[r.authors, r.year].filter(Boolean).join(" · ")}
@@ -341,7 +419,7 @@ export function ExperimentWorkspace() {
                     type="button"
                     onClick={runPlan}
                     disabled={planLoading}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-sky-950 shadow-lg shadow-sky-500/20 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-sky-950 shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 hover:shadow-sky-500/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 motion-reduce:active:scale-100"
                   >
                     {planLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -353,7 +431,7 @@ export function ExperimentWorkspace() {
                   <button
                     type="button"
                     onClick={() => setStep("input")}
-                    className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition hover:border-zinc-500 hover:text-[var(--foreground)]"
+                    className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition hover:border-zinc-500 hover:bg-white/[0.04] hover:text-[var(--foreground)] active:scale-[0.99] motion-reduce:active:scale-100"
                   >
                     Edit question
                   </button>
@@ -371,23 +449,51 @@ export function ExperimentWorkspace() {
             )}
           </section>
 
-          <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)]">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-                <Sparkles className="h-4 w-4 text-amber-300" aria-hidden />
-                At-a-glance
-              </h3>
-              <dl className="mt-4 space-y-3 text-sm">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-[var(--muted)]">QC status</dt>
-                  <dd className="font-medium text-[var(--foreground)]">
-                    {literature ? "Complete" : "—"}
+          <aside className="space-y-4 lg:sticky lg:top-16 lg:self-start">
+            <div className="interactive-surface overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow)]">
+              <div className="border-b border-[var(--border)] bg-gradient-to-br from-amber-500/10 to-transparent p-4 sm:p-5">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/25 bg-amber-500/10">
+                    <Sparkles
+                      className="h-4 w-4 text-amber-200"
+                      aria-hidden
+                    />
+                  </span>
+                  At-a-glance
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
+                  Live summary as you move through the workflow.
+                </p>
+              </div>
+              <dl className="space-y-3 p-4 text-sm sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-[var(--muted)]">Literature QC</dt>
+                  <dd className="flex items-center gap-1.5 font-medium text-[var(--foreground)]">
+                    {literature ? (
+                      <>
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
+                          <Check className="h-3 w-3" aria-hidden />
+                        </span>
+                        Done
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </dd>
                 </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-[var(--muted)]">Plan</dt>
-                  <dd className="font-medium text-[var(--foreground)]">
-                    {plan ? "Ready" : "—"}
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-[var(--muted)]">Experiment plan</dt>
+                  <dd className="flex items-center gap-1.5 font-medium text-[var(--foreground)]">
+                    {plan ? (
+                      <>
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
+                          <Check className="h-3 w-3" aria-hidden />
+                        </span>
+                        Ready
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </dd>
                 </div>
                 {plan && (
@@ -420,34 +526,44 @@ export function ExperimentWorkspace() {
               </dl>
             </div>
 
-            <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card-muted)] p-5 text-xs leading-relaxed text-[var(--muted)]">
-              Wire a real backend by setting{" "}
-              <code className="rounded bg-black/40 px-1 py-0.5 text-[11px] text-zinc-300">
-                BACKEND_URL
-              </code>{" "}
-              in{" "}
-              <code className="rounded bg-black/40 px-1 py-0.5 text-[11px] text-zinc-300">
-                .env.local
-              </code>
-              . Next.js will forward to your{" "}
-              <code className="rounded bg-black/40 px-1 py-0.5 text-[11px] text-zinc-300">
-                POST /api/literature-qc
-              </code>{" "}
-              and{" "}
-              <code className="rounded bg-black/40 px-1 py-0.5 text-[11px] text-zinc-300">
-                POST /api/experiment-plan
-              </code>{" "}
-              routes when present.
-            </div>
+            <details className="group rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card-muted)] text-left text-xs leading-relaxed text-[var(--muted)] open:border-zinc-600/30 open:bg-zinc-900/30">
+              <summary className="cursor-pointer list-none p-4 font-medium text-zinc-400 transition marker:content-[''] hover:text-zinc-300 [&::-webkit-details-marker]:hidden sm:p-5">
+                <span className="inline-flex w-full items-center justify-between gap-2">
+                  <span>Integrate your backend (optional)</span>
+                  <ChevronRight className="h-4 w-4 shrink-0 transition group-open:rotate-90" aria-hidden />
+                </span>
+              </summary>
+              <div className="border-t border-[var(--border)] px-4 pb-4 pt-0 sm:px-5 sm:pb-5">
+                <p className="pt-2">
+                  Wire a real backend by setting{" "}
+                  <code className="rounded bg-black/50 px-1.5 py-0.5 text-[11px] text-zinc-200">
+                    BACKEND_URL
+                  </code>{" "}
+                  in{" "}
+                  <code className="rounded bg-black/50 px-1.5 py-0.5 text-[11px] text-zinc-200">
+                    .env.local
+                  </code>
+                  . Next.js will forward to your{" "}
+                  <code className="rounded bg-black/50 px-1.5 py-0.5 text-[11px] text-zinc-200">
+                    POST /api/literature-qc
+                  </code>{" "}
+                  and{" "}
+                  <code className="rounded bg-black/50 px-1.5 py-0.5 text-[11px] text-zinc-200">
+                    POST /api/experiment-plan
+                  </code>{" "}
+                  routes when present.
+                </p>
+              </div>
+            </details>
           </aside>
         </div>
 
         {plan && (
           <section
             id="experiment-plan"
-            className="mt-12 scroll-mt-24 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow)]"
+            className="animate-fade-up mt-12 scroll-mt-28 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-lg)]"
           >
-            <div className="flex flex-col gap-4 border-b border-[var(--border)] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex flex-col gap-4 border-b border-[var(--border)] bg-gradient-to-r from-emerald-500/5 to-transparent p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
               <div>
                 <h2 className="flex items-center gap-2 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
                   <ClipboardList className="h-6 w-6 text-emerald-400" aria-hidden />
@@ -474,7 +590,7 @@ export function ExperimentWorkspace() {
                     className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition ${
                       activeSection === id
                         ? "bg-emerald-500/20 text-emerald-100 ring-1 ring-emerald-500/40"
-                        : "bg-[var(--input-bg)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                        : "bg-[var(--input-bg)] text-[var(--muted)] hover:bg-white/5 hover:text-[var(--foreground)] active:scale-95"
                     }`}
                   >
                     {id}
@@ -579,7 +695,10 @@ export function ExperimentWorkspace() {
                     </thead>
                     <tbody className="divide-y divide-[var(--border)]">
                       {plan.materials.map((m) => (
-                        <tr key={m.name + m.supplier} className="bg-[var(--input-bg)]">
+                        <tr
+                          key={m.name + m.supplier}
+                          className="bg-[var(--input-bg)] transition hover:bg-zinc-800/50"
+                        >
                           <td className="px-4 py-3 font-medium text-zinc-200">
                             {m.name}
                           </td>
@@ -695,46 +814,188 @@ export function ExperimentWorkspace() {
         )}
       </main>
 
-      <footer className="relative mt-16 border-t border-[var(--border)] py-8 text-center text-xs text-[var(--muted)]">
-        Demo responses ship with the app for judging UX; connect your model via{" "}
-        <code className="text-zinc-400">BACKEND_URL</code>.
+      <footer className="relative mt-20 border-t border-[var(--border)] bg-zinc-950/40">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+          <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+            <p className="max-w-md text-sm leading-relaxed text-[var(--muted)]">
+              Demo responses ship with the app for judging UX. Connect your
+              model by setting{" "}
+              <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
+                BACKEND_URL
+              </code>
+              .
+            </p>
+            <a
+              href="#main-content"
+              onClick={(e) => {
+                e.preventDefault();
+                document
+                  .getElementById("panel-question")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="text-xs font-medium text-zinc-500 transition hover:text-emerald-300/90"
+            >
+              Back to top
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );
 }
 
-function StepPill({
-  n,
-  title,
-  active,
-  done,
+function NavJump({
+  href,
+  label,
+  current,
+  disabled,
 }: {
+  href: string;
+  label: string;
+  current: boolean;
+  disabled?: boolean;
+}) {
+  if (disabled) {
+    return (
+      <span
+        className="rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-600 sm:px-3 sm:text-sm"
+        aria-disabled
+      >
+        {label}
+      </span>
+    );
+  }
+  return (
+    <a
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        const id = href.slice(1);
+        document.getElementById(id)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }}
+      className={`rounded-lg px-2 py-1.5 text-xs font-medium transition sm:px-3 sm:text-sm ${
+        current
+          ? "bg-emerald-500/12 text-emerald-100 ring-1 ring-emerald-500/25"
+          : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+      }`}
+    >
+      {label}
+    </a>
+  );
+}
+
+const STEP_RAIL: {
+  id: Step;
   n: number;
   title: string;
-  active?: boolean;
-  done?: boolean;
+  targetId: string;
+}[] = [
+  { id: "input", n: 1, title: "Question", targetId: "panel-question" },
+  { id: "literature", n: 2, title: "Literature QC", targetId: "panel-literature" },
+  { id: "plan", n: 3, title: "Experiment plan", targetId: "experiment-plan" },
+];
+
+function StepRail({
+  step,
+  hasLiterature,
+  hasPlan,
+  onStepChange,
+}: {
+  step: Step;
+  hasLiterature: boolean;
+  hasPlan: boolean;
+  onStepChange: (s: Step) => void;
 }) {
+  const canGo = (s: Step) => {
+    if (s === "input") return true;
+    if (s === "literature") return hasLiterature;
+    return hasPlan;
+  };
+
+  const go = (s: Step) => {
+    if (!canGo(s)) return;
+    onStepChange(s);
+    const target = STEP_RAIL.find((x) => x.id === s)?.targetId;
+    if (target) {
+      requestAnimationFrame(() => {
+        document
+          .getElementById(target)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  };
+
   return (
-    <li className="flex flex-1 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3">
-      <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-          done
-            ? "bg-emerald-500/20 text-emerald-200"
-            : active
-              ? "bg-sky-500/20 text-sky-200"
-              : "bg-[var(--pill-idle)] text-[var(--muted)]"
-        }`}
-      >
-        {n}
-      </span>
-      <span
-        className={`text-sm font-medium ${
-          active ? "text-[var(--foreground)]" : "text-[var(--muted)]"
-        }`}
-      >
-        {title}
-      </span>
-    </li>
+    <div className="mb-10" role="navigation" aria-label="Workflow progress">
+      <p className="mb-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--muted)] sm:text-left">
+        Your path
+      </p>
+      <ol className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+        {STEP_RAIL.map((item) => {
+          const available = canGo(item.id);
+          const isActive = step === item.id;
+          const isComplete =
+            (item.id === "input" && step !== "input") ||
+            (item.id === "literature" && step === "plan");
+          const showCheck = isComplete;
+
+          return (
+            <li key={item.id} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => go(item.id)}
+                disabled={!available}
+                className={`group/step flex w-full flex-col items-center gap-2 rounded-2xl border px-2 py-4 text-center transition ${
+                  isActive
+                    ? "border-emerald-500/35 bg-emerald-500/[0.08] ring-1 ring-emerald-500/20"
+                    : showCheck
+                      ? "border-[var(--border)] bg-[var(--card)] hover:border-zinc-600/40"
+                      : "border-[var(--border)] bg-[var(--card)]/80 opacity-70"
+                } ${
+                  available
+                    ? "cursor-pointer hover:border-zinc-500/35 focus-visible:ring-2 focus-visible:ring-[var(--ring-focus)]"
+                    : "cursor-not-allowed"
+                } sm:px-3 sm:py-5`}
+              >
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition ${
+                    showCheck
+                      ? "bg-emerald-500/25 text-emerald-200"
+                      : isActive
+                        ? "bg-sky-500/20 text-sky-100 ring-2 ring-sky-500/35"
+                        : "bg-[var(--pill-idle)] text-[var(--muted)]"
+                  } ${
+                    available
+                      ? "group-hover/step:scale-[1.04]"
+                      : ""
+                  } motion-reduce:group-hover/step:scale-100`}
+                >
+                  {showCheck ? (
+                    <Check className="h-4 w-4" aria-hidden />
+                  ) : (
+                    item.n
+                  )}
+                </span>
+                <span
+                  className={`line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-snug sm:text-sm ${
+                    isActive
+                      ? "text-[var(--foreground)]"
+                      : showCheck
+                        ? "text-zinc-300"
+                        : "text-[var(--muted)]"
+                  }`}
+                >
+                  {item.title}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 

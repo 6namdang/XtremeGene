@@ -82,3 +82,33 @@ export interface ExperimentPlanRequest {
   question: string;
   literature: LiteratureQCResult;
 }
+
+export interface PaperPreview {
+  pmcid: string;
+  openalex_id?: string | null;
+  title: string;
+  source_url: string;
+  preview: string;
+  fetched_at: string;
+  figure_count?: number;
+  table_count?: number;
+}
+
+export interface PaperFigure {
+  image_url: string;
+  caption: string;
+  label?: string;
+}
+
+export interface PaperTable {
+  label: string;
+  caption?: string;
+  rows: string[][];
+}
+
+export interface PaperDetail extends PaperPreview {
+  text: string;
+  text_sha256: string;
+  figures: PaperFigure[];
+  tables: PaperTable[];
+}
