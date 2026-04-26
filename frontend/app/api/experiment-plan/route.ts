@@ -6,6 +6,10 @@ import type {
   LiteratureQCResult,
 } from "@/lib/types";
 
+// Agent2 + Agent4 OpenAI chained calls can run 20-40 s. Vercel's default of
+// 10 s is far too short; Hobby tier allows up to 60 s.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   let body: ExperimentPlanRequest;
   try {
@@ -28,11 +32,15 @@ export async function POST(req: Request) {
     "/api/experiment-plan",
     body
   );
-  if (!remote) {
+  if (!remote.ok) {
     return NextResponse.json(
-      { error: "Backend experiment-plan unavailable. Start backend and verify OPENAI_API_KEY." },
+      {
+        error: remote.message,
+        backendUrl: remote.backendUrl,
+        backendStatus: remote.status,
+      },
       { status: 502 }
     );
   }
-  return NextResponse.json(remote);
+  return NextResponse.json(remote.data);
 }

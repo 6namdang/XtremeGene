@@ -1,3 +1,7 @@
+// Agent1 fans out to OpenAlex + PMC for up to 50 papers and streams them as
+// they arrive — the whole stream can run for the better part of a minute.
+export const maxDuration = 60;
+
 function backendBase(): string | null {
   const base =
     process.env.BACKEND_URL?.trim() ||

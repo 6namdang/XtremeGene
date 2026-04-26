@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { tryBackendJson } from "@/lib/backend-proxy";
 import type { LiteratureQCRequest, LiteratureQCResult } from "@/lib/types";
 
+// Lit QC fans out to OpenAlex + PMC + OpenAI; needs longer than Vercel's
+// 10 s default. Hobby tier allows up to 60 s for Node.js serverless functions.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   let body: LiteratureQCRequest;
   try {
@@ -17,11 +21,15 @@ export async function POST(req: Request) {
     "/api/literature-qc",
     body
   );
-  if (!remote) {
+  if (!remote.ok) {
     return NextResponse.json(
-      { error: "Backend literature QC unavailable. Start backend and verify OPENAI_API_KEY." },
+      {
+        error: remote.message,
+        backendUrl: remote.backendUrl,
+        backendStatus: remote.status,
+      },
       { status: 502 }
     );
   }
-  return NextResponse.json(remote);
+  return NextResponse.json(remote.data);
 }

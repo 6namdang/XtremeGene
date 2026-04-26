@@ -4,3 +4,9 @@ __pycache__/
 
 
 venv/
+
+# Local SQLite cache; rebuilt on demand by Agent1's evidence pipeline.
+evidence.db
+evidence.db-journal
+evidence.db-wal
+evidence.db-shm

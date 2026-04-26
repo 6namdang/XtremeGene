@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { tryBackendJson } from "@/lib/backend-proxy";
-import type { HypothesesRequest, HypothesesResult, LiteratureQCResult } from "@/lib/types";
+import type {
+  HypothesesRequest,
+  HypothesesResult,
+  LiteratureQCResult,
+} from "@/lib/types";
+
+// Agent2 hypothesis ranking + Agent3 ESMFold predictions can take 30 s+.
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let body: HypothesesRequest;
@@ -22,11 +29,15 @@ export async function POST(req: Request) {
   }
 
   const remote = await tryBackendJson<HypothesesResult>("/api/hypotheses", body);
-  if (!remote) {
+  if (!remote.ok) {
     return NextResponse.json(
-      { error: "Backend hypotheses unavailable. Start backend and verify OPENAI/ESMFold connectivity." },
+      {
+        error: remote.message,
+        backendUrl: remote.backendUrl,
+        backendStatus: remote.status,
+      },
       { status: 502 }
     );
   }
-  return NextResponse.json(remote);
+  return NextResponse.json(remote.data);
 }
