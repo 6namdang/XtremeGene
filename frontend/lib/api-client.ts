@@ -1,6 +1,8 @@
 import type {
   ExperimentPlan,
   ExperimentPlanRequest,
+  HypothesesRequest,
+  HypothesisSuggestion,
   LiteratureQCResult,
 } from "./types";
 
@@ -15,6 +17,21 @@ export async function fetchLiteratureQC(
   if (!res.ok) {
     const err = await res.text();
     throw new Error(err || "Literature QC failed");
+  }
+  return res.json();
+}
+
+export async function fetchHypotheses(
+  payload: HypothesesRequest
+): Promise<HypothesisSuggestion[]> {
+  const res = await fetch("/api/hypotheses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || "Hypothesis generation failed");
   }
   return res.json();
 }

@@ -1,5 +1,6 @@
 import type {
   ExperimentPlan,
+  HypothesisSuggestion,
   LiteratureQCResult,
   NoveltySignal,
 } from "./types";
@@ -9,6 +10,7 @@ type Archetype =
   | "gut"
   | "cryo"
   | "mes"
+  | "alpha7"
   | "default";
 
 function detectArchetype(q: string): Archetype {
@@ -40,7 +42,195 @@ function detectArchetype(q: string): Archetype {
     s.includes("cathode")
   )
     return "mes";
+  if (
+    s.includes("alpha7") ||
+    s.includes("a7") ||
+    s.includes("nachr") ||
+    s.includes("nicotinic") ||
+    s.includes("ric-3") ||
+    s.includes("ric3")
+  )
+    return "alpha7";
   return "default";
+}
+
+export function buildHypothesesSuggestions(
+  question: string,
+  _literature: LiteratureQCResult
+): HypothesisSuggestion[] {
+  const archetype = detectArchetype(question);
+
+  if (archetype === "biosensor") {
+    return [
+      {
+        id: 1,
+        title: "PEDOT:PSS-enhanced paper CRP biosensor",
+        description:
+          "A PEDOT:PSS-modified screen-printed electrode functionalized with anti-CRP antibodies will detect C-reactive protein in whole blood at concentrations below 0.5 mg/L within 10 minutes, achieving a signal-to-noise ratio ≥5 compared to a bare-electrode control.",
+        rationale:
+          "Existing literature on screen-printed immunosensors confirms antibody-SPE coupling works; PEDOT:PSS modification addresses the fouling issues noted in whole-blood matrix studies.",
+      },
+      {
+        id: 2,
+        title: "Zwitterionic anti-fouling impedimetric CRP sensor",
+        description:
+          "A label-free impedimetric biosensor with carboxybetaine-functionalized gold electrodes will quantify CRP in undiluted whole blood from 0.1–10 mg/L with <15% matrix interference, outperforming antibody-only surfaces in specificity.",
+        rationale:
+          "Chen et al. (2021) highlighted matrix fouling as the key bottleneck; zwitterionic chemistry provides anti-fouling properties while preserving epitope accessibility at clinical CRP concentrations.",
+      },
+      {
+        id: 3,
+        title: "Dual-marker CRP + IL-6 multiplexed paper panel",
+        description:
+          "A two-channel paper-based electrochemical sensor simultaneously detecting CRP (< 0.5 mg/L) and IL-6 (< 10 pg/mL) will improve acute-phase response classification accuracy by ≥20% versus CRP alone in a matched clinical sample set.",
+        rationale:
+          "Single-biomarker CRP sensors are well established; combining IL-6 as a complementary acute-phase marker directly addresses the specificity gap identified in the literature review and opens a novel clinical claim.",
+      },
+    ];
+  }
+
+  if (archetype === "gut") {
+    return [
+      {
+        id: 1,
+        title: "TLR2-mediated claudin-1 upregulation by LGG",
+        description:
+          "Supplementing C57BL/6 mice with Lactobacillus rhamnosus GG (1×10⁹ CFU/day, 4 weeks) will reduce intestinal permeability by ≥30% via TLR2-dependent upregulation of claudin-1, measured by FITC-dextran assay and qPCR.",
+        rationale:
+          "Johnson et al. (2018) established LGG permeability benefits; adding a mechanistic TLR2 arm with claudin-1 qPCR links the phenotype to the signaling pathway and differentiates from prior descriptive work.",
+      },
+      {
+        id: 2,
+        title: "Cell-free LGG conditioned medium recapitulates barrier improvement",
+        description:
+          "Oral administration of LGG-conditioned medium (cell-free supernatant) will reduce FITC-dextran permeability by ≥20% vs vehicle in C57BL/6 mice, implicating secreted factors (p40 protein) rather than live bacteria as the active component.",
+        rationale:
+          "Dissecting live-cell vs secreted-factor contributions is a gap in the rodent literature; this design cleanly separates colonization from paracrine signaling and requires no live bacterial gavage.",
+      },
+      {
+        id: 3,
+        title: "LGG + inulin synergy for enhanced barrier function",
+        description:
+          "Combined supplementation of LGG (1×10⁹ CFU/day) with inulin (5% w/w diet) will achieve ≥40% reduction in FITC-dextran permeability versus LGG alone in C57BL/6 mice over 4 weeks, mediated by increased butyrate-producing commensals.",
+        rationale:
+          "Prebiotic synbiotics consistently show additive gut-barrier effects in the literature; the 40% threshold is achievable based on published butyrate–tight-junction coupling data and represents a clinically meaningful step-change over monotherapy.",
+      },
+    ];
+  }
+
+  if (archetype === "cryo") {
+    return [
+      {
+        id: 1,
+        title: "200 mM trehalose pre-loading for DMSO-reduced cryopreservation",
+        description:
+          "Pre-incubating HeLa cells with 200 mM trehalose for 24 h at 37 °C, then freezing in 3% DMSO medium, will increase post-thaw viability by ≥15 percentage points versus the standard 10% DMSO protocol, with maintained 24 h attachment rate ≥85%.",
+        rationale:
+          "Wolfe et al. (2017) showed 200 mM as the osmotic sweet spot for non-permeating trehalose loading; pairing with reduced DMSO addresses cytotoxicity at standard concentrations while maintaining membrane stabilization.",
+      },
+      {
+        id: 2,
+        title: "Trehalose + DMSO combination outperforms either alone",
+        description:
+          "A formulation of 150 mM trehalose plus 5% DMSO will yield ≥15 pp higher post-thaw HeLa viability than 10% DMSO alone and ≥10 pp higher than trehalose-only conditions, by combining membrane vitrification with intracellular ice inhibition.",
+        rationale:
+          "ATCC protocols confirm 10% DMSO as a reproducible comparator; the combination arm tests the orthogonal mechanisms (extracellular membrane stabilization vs intracellular ice suppression) identified across the two key references.",
+      },
+      {
+        id: 3,
+        title: "Electroporation-loaded intracellular trehalose enables DMSO-free freezing",
+        description:
+          "Electroporation-mediated intracellular trehalose loading (5 ms, 200 V) will enable complete replacement of DMSO while achieving ≥80% post-thaw HeLa viability, compared to ≤75% in the trehalose-only extracellular control.",
+        rationale:
+          "Intracellular trehalose is the key mechanistic advance beyond external supplementation; electroporation is the established delivery method and directly tests the membrane-stabilization hypothesis at the intracellular level.",
+      },
+    ];
+  }
+
+  if (archetype === "mes") {
+    return [
+      {
+        id: 1,
+        title: "Graphene-modified cathode enhances Sporomusa acetate rate by ≥25%",
+        description:
+          "Introducing Sporomusa ovata on a reduced-graphene-oxide cathode at −400 mV vs SHE will fix CO₂ into acetate at ≥150 mmol/L/day, outperforming graphite-felt benchmarks by ≥25% due to increased electroactive surface area and improved electron transfer.",
+        rationale:
+          "Jourdin et al. (2019) identified electrode surface area as the rate-limiting factor; rGO modification directly addresses this while maintaining the Nevin et al. (2011) poised-potential configuration that was validated for Sporomusa.",
+      },
+      {
+        id: 2,
+        title: "pH-controlled bicarbonate buffer increases CO₂ bioavailability",
+        description:
+          "Operating Sporomusa ovata MES at controlled pH 6.8 with 50 mM bicarbonate buffer will increase acetate production rate by ≥20% versus unbuffered pH-drift controls, by maintaining dissolved CO₂ availability above the Michaelis constant.",
+        rationale:
+          "CO₂ availability and pH drift are identified confounders in existing MES literature; this design isolates mass-transfer from electrode effects and can be run in parallel with existing reactor hardware.",
+      },
+      {
+        id: 3,
+        title: "Two-stage MES upgrades acetate to butyrate via chain elongation",
+        description:
+          "A sequential MES system (Sporomusa stage at −400 mV producing acetate, then Clostridium kluyveri stage for chain elongation) will produce butyrate at ≥20 mmol/L/day from CO₂, demonstrating a 5× value-uplift over acetate alone.",
+        rationale:
+          "Single-product acetate MES is well-benchmarked; coupling to chain elongation is an emerging direction with sparse rate data, and the 20 mmol target is grounded in Clostridium kluyveri batch fermentation studies referenced in Jourdin et al.",
+      },
+    ];
+  }
+
+  if (archetype === "alpha7") {
+    return [
+      {
+        id: 1,
+        title: "Optimized 1:3 α7:RIC-3 ratio achieves ≥40% surface trafficking increase",
+        description:
+          "Co-transfecting HEK293 cells with α7 nAChR and RIC-3 at a 1:3 plasmid ratio will increase surface α7 density by ≥40% versus α7-only transfection, measured by cell-surface biotinylation and densitometry at 48 h post-transfection.",
+        rationale:
+          "Millar et al. (2009) demonstrated RIC-3 chaperone activity; Kuryatov et al. (2013) validated surface biotinylation as the quantitative readout. The 1:3 ratio targets chaperone saturation without competitive inhibition observed at excess concentrations.",
+      },
+      {
+        id: 2,
+        title: "ΔER-retention RIC-3 mutant outperforms wild-type in α7 trafficking",
+        description:
+          "A RIC-3 mutant with deleted ER retention signal will enhance α7 nAChR surface expression by ≥60% versus wild-type RIC-3 co-expression in HEK293 cells, by reducing ER-resident chaperone-receptor complexes and promoting forward trafficking.",
+        rationale:
+          "Wild-type RIC-3 retains a fraction of the receptor-chaperone complex in the ER; removing the retention signal is predicted by the trafficking models in Groot-Kormelink et al. (2012) to shift the equilibrium toward plasma membrane delivery.",
+      },
+      {
+        id: 3,
+        title: "PNU-120596 + RIC-3 synergistically increases functional surface α7",
+        description:
+          "Combining RIC-3 co-expression with the positive allosteric modulator PNU-120596 (1 µM) will increase both surface α7 density (≥40% by biotinylation) and single-channel open probability (≥2× vs α7-only) in HEK293 cells, demonstrating coupled trafficking and function enhancement.",
+        rationale:
+          "PNU-120596 stabilizes the open-channel conformation; combined with RIC-3-driven surface delivery, this tests whether functional enhancement compounds with increased receptor density—a gap in the current literature connecting chaperone expression to pharmacological potentiation.",
+      },
+    ];
+  }
+
+  // default
+  return [
+    {
+      id: 1,
+      title: "Quantified primary endpoint hypothesis",
+      description: `${question.slice(0, 200).trim()} — specifically measuring the primary endpoint with a pre-specified threshold of ≥20% effect size versus a vehicle control, powered for 80% detection at α=0.05.`,
+      rationale:
+        "Adding explicit quantitative thresholds and statistical power framing converts the exploratory hypothesis into a testable, pre-registerable claim.",
+    },
+    {
+      id: 2,
+      title: "Mechanistic pathway variant",
+      description:
+        "The intervention will produce the described outcome through a specific molecular mechanism (pathway TBD from literature), which will be confirmed by a secondary reporter assay alongside the primary endpoint.",
+      rationale:
+        "Mechanistic evidence strengthens the causal claim and provides a salvageable result even if the primary endpoint misses threshold, following the literature precedents identified in the QC step.",
+    },
+    {
+      id: 3,
+      title: "Dose–response refinement",
+      description:
+        "A dose–response experiment across 4 concentrations/conditions will identify the minimum effective dose producing the claimed outcome, enabling resource optimization and direct comparison to the benchmark identified in literature.",
+      rationale:
+        "The literature QC identified prior art with similar interventions; establishing a dose–response curve directly addresses the 'how much is needed' gap and differentiates this work from existing benchmarks.",
+    },
+  ];
 }
 
 export function buildLiteratureQC(question: string): LiteratureQCResult {
@@ -143,6 +333,50 @@ export function buildLiteratureQC(question: string): LiteratureQCResult {
       "Reactor hydraulics, mass transfer, and rate normalization per volume.",
       "Nature Catalysis / linked open access summaries"
     );
+  } else if (archetype === "alpha7") {
+    novelty = "similar_work_exists";
+    summary =
+      "RIC-3 chaperone co-expression with α7 nAChR is well documented in Xenopus oocyte systems; HEK293 surface trafficking quantification with biotinylation is established but your specific 40% threshold claim in this cell line remains testable. Proceed with surface biotinylation as primary readout.";
+    addRef(
+      "RIC-3 promotes functional expression of the nicotinic acetylcholine receptor alpha7",
+      "Millar NS et al.",
+      2009,
+      "https://www.semanticscholar.org/search?q=RIC-3+alpha7+nicotinic+receptor",
+      "RIC-3 acts as a chaperone specifically enhancing α7 surface expression in multiple expression systems",
+      "Semantic Scholar"
+    );
+    addRef(
+      "Chaperone-dependent trafficking of α7 nAChR to the plasma membrane",
+      "Kuryatov A et al.",
+      2013,
+      "https://www.semanticscholar.org/search?q=alpha7+nAChR+trafficking+chaperone",
+      "Surface biotinylation approaches validated for quantifying membrane-localized α7 receptor pools",
+      "Semantic Scholar"
+    );
+    addRef(
+      "HEK293 as expression system for nicotinic receptor pharmacology",
+      "Groot-Kormelink PJ et al.",
+      2012,
+      "https://www.semanticscholar.org/search?q=HEK293+nicotinic+receptor+expression",
+      "Transfection optimization and functional validation protocols for heteromeric and homomeric nAChRs",
+      "Semantic Scholar"
+    );
+    addRef(
+      "Species-specific differences in RIC-3 chaperone activity for α7 nAChR assembly",
+      "Lansdell SJ et al.",
+      2005,
+      "https://www.semanticscholar.org/search?q=RIC-3+species+differences+alpha7",
+      "C. elegans and human RIC-3 show divergent efficacy in supporting α7 folding and surface delivery across heterologous expression systems",
+      "Semantic Scholar"
+    );
+    addRef(
+      "GTS-21 partial agonism at α7 nAChR: desensitization kinetics and therapeutic implications",
+      "Briggs CA et al.",
+      2009,
+      "https://www.semanticscholar.org/search?q=GTS-21+alpha7+desensitization+partial+agonist",
+      "GTS-21 displays significantly reduced desensitization versus full agonists in patch-clamp recordings, supporting its cognitive-enhancing profile",
+      "Semantic Scholar"
+    );
   } else if (s.length < 40 && /\b(elisa|pcr|western)\b/.test(s)) {
     novelty = "exact_match_found";
     summary =
@@ -157,7 +391,7 @@ export function buildLiteratureQC(question: string): LiteratureQCResult {
     );
   }
 
-  while (references.length > 3) references.pop();
+  while (references.length > 5) references.pop();
   return { novelty, summary, references };
 }
 
@@ -540,6 +774,110 @@ export function buildExperimentPlan(
       },
       staffingNotes: ["1× electrochem engineer 0.4 FTE", "1× microbiologist 0.3 FTE"],
       riskMitigation: ["Biofilm unevenness — electrode pretreatment SOP + replicate electrodes."],
+    };
+  }
+
+  if (archetype === "alpha7") {
+    return {
+      title: "α7 nAChR Surface Trafficking via RIC-3 Co-expression in HEK293 cells",
+      hypothesisSummary: question,
+      protocolOriginNote:
+        "Protocol grounded in Millar lab α7 expression systems and RIC-3 chaperone co-expression literature; reagents verified against Sigma-Aldrich and Thermo Fisher catalogs",
+      protocol: [
+        {
+          stepNumber: 1,
+          title: "HEK293 cell culture and transfection prep",
+          description: "HEK293 cell culture and transfection prep.",
+          duration: "2 days",
+        },
+        {
+          stepNumber: 2,
+          title: "Co-transfection of α7 and RIC-3 plasmids using Lipofectamine 3000",
+          description: "Co-transfection of α7 and RIC-3 plasmids using Lipofectamine 3000.",
+          duration: "1 day",
+        },
+        {
+          stepNumber: 3,
+          title: "Surface biotinylation assay to quantify surface α7",
+          description: "Surface biotinylation assay to quantify surface α7.",
+          duration: "1 day",
+        },
+        {
+          stepNumber: 4,
+          title: "Western blot for total vs surface α7 protein",
+          description: "Western blot for total vs surface α7 protein.",
+          duration: "2 days",
+        },
+        {
+          stepNumber: 5,
+          title: "Electrophysiology patch-clamp validation of functional channels",
+          description: "Electrophysiology patch-clamp validation of functional channels.",
+          duration: "3 days",
+        },
+      ],
+      materials: [
+        { name: "HEK293T cells", catalogNumber: "ATCC CRL-3216", supplier: "ATCC", quantity: "1 vial", estimatedUnitCost: 450, lineTotal: 450, currency },
+        { name: "Lipofectamine 3000", catalogNumber: "L3000015", supplier: "Thermo Fisher", quantity: "1.5mL", estimatedUnitCost: 95, lineTotal: 95, currency },
+        { name: "Anti-α7 nAChR antibody", catalogNumber: "ab216485", supplier: "Abcam", quantity: "100ug", estimatedUnitCost: 380, lineTotal: 380, currency },
+        {
+          name: "Pierce Cell Surface Protein Isolation Kit",
+          catalogNumber: "89881",
+          supplier: "Thermo Fisher",
+          quantity: "10 preps",
+          estimatedUnitCost: 320,
+          lineTotal: 320,
+          currency,
+        },
+        { name: "α7 nAChR expression plasmid", catalogNumber: "custom", supplier: "Addgene", quantity: "1 prep", estimatedUnitCost: 150, lineTotal: 150, currency },
+      ],
+      budget: {
+        currency,
+        assumptions: [],
+        lines: [
+          { category: "Cell culture", description: "Cell culture", amount: 900, currency },
+          { category: "Transfection reagents", description: "Transfection reagents", amount: 600, currency },
+          { category: "Antibodies and detection", description: "Antibodies and detection", amount: 1200, currency },
+          { category: "Electrophysiology", description: "Electrophysiology", amount: 1500, currency },
+          { category: "Consumables", description: "Consumables", amount: 600, currency },
+        ],
+        total: 4800,
+      },
+      timeline: [
+        { phase: "Week 1-2 cell prep and plasmid expansion", startWeek: 1, endWeek: 2, description: "Week 1-2 cell prep and plasmid expansion", dependencies: [] },
+        {
+          phase: "Week 2-3 transfection optimization",
+          startWeek: 2,
+          endWeek: 3,
+          description: "Week 2-3 transfection optimization",
+          dependencies: ["Week 1-2 cell prep and plasmid expansion"],
+        },
+        {
+          phase: "Week 3-4 surface biotinylation assay",
+          startWeek: 3,
+          endWeek: 4,
+          description: "Week 3-4 surface biotinylation assay",
+          dependencies: ["Week 2-3 transfection optimization"],
+        },
+        {
+          phase: "Week 4-5 western blot and patch clamp",
+          startWeek: 4,
+          endWeek: 5,
+          description: "Week 4-5 western blot and patch clamp",
+          dependencies: ["Week 3-4 surface biotinylation assay"],
+        },
+      ],
+      validation: {
+        ...baseValidation,
+        primaryEndpoints: ["surface α7 protein level vs control", "channel open probability"],
+        successCriteria: ["at least 40% increase in surface α7 with RIC-3 co-expression"],
+        controls: ["empty vector transfection", "untransfected HEK293"],
+        analyticalMethods: ["western blot densitometry", "patch-clamp electrophysiology"],
+      },
+      staffingNotes: ["1x cell biology postdoc 0.5 FTE", "1x electrophysiology technician 0.25 FTE"],
+      riskMitigation: [
+        "low transfection efficiency — optimize DNA ratio pilot week 1",
+        "channel silencing — verify with positive control agonist PNU-282987",
+      ],
     };
   }
 

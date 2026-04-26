@@ -74,8 +74,20 @@ export interface ExperimentPlan {
   riskMitigation?: string[];
 }
 
+export interface HypothesisSuggestion {
+  id: number;
+  title: string;
+  description: string;
+  rationale: string;
+}
+
 export interface LiteratureQCRequest {
   question: string;
+}
+
+export interface HypothesesRequest {
+  question: string;
+  literature: LiteratureQCResult;
 }
 
 export interface ExperimentPlanRequest {
