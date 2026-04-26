@@ -1,31 +1,26 @@
 # Render Blueprint — one-click deploy of the FastAPI backend.
 #
+# Reference: https://render.com/docs/blueprint-spec
+#
 # Builds backend/Dockerfile, mounts a 1 GB persistent disk at /data so
 # SQLite (evidence.db) survives deploys, and runs uvicorn on $PORT.
 #
 # After Render creates the service, set the SECRET env vars in the dashboard:
-#   OPENAI_API_KEY        (required for live LLM agents; deterministic fallbacks
-#                          still serve every endpoint without it)
-#   NCBI_API_KEY          (optional — higher PubMed/PMC rate limits)
-#   SEMANTIC_SCHOLAR_API_KEY (optional)
+#   OPENAI_API_KEY            (required for live LLM agents; deterministic
+#                              fallbacks still serve every endpoint without it)
+#   NCBI_API_KEY              (optional — higher PubMed/PMC rate limits)
+#   SEMANTIC_SCHOLAR_API_KEY  (optional)
 #
 # Then point your Vercel frontend at the resulting URL via BACKEND_URL.
-#
-# NOTE on plans:
-#   - "starter" ($7/mo) supports persistent disks (recommended).
-#   - For free-tier testing: change plan to "free" and DELETE the `disk:` block;
-#     evidence.db will then be ephemeral (cache rebuilds on every deploy / cold
-#     start), which is fine for demos but slower on first call after sleep.
 
 services:
   - type: web
     name: xtremegene-backend
     runtime: docker
     plan: starter
-    region: oregon
-    rootDir: backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     healthCheckPath: /
-    autoDeploy: true
     disk:
       name: xtremegene-data
       mountPath: /data
@@ -57,7 +52,8 @@ services:
         value: "400"
       - key: ESMFOLD_OVERLAP
         value: "20"
-      # sync:false keeps these out of git; set them in the Render dashboard.
+      # sync:false keeps secrets out of git; set their values in the
+      # Render dashboard after the Blueprint creates the service.
       - key: OPENAI_API_KEY
         sync: false
       - key: NCBI_API_KEY
