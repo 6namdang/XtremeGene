@@ -6,10 +6,15 @@ export async function tryBackendJson<T>(
   path: string,
   body: unknown
 ): Promise<T | null> {
-  const base = process.env.BACKEND_URL?.replace(/\/$/, "");
-  if (!base) return null;
+  const base =
+    process.env.BACKEND_URL?.trim() ||
+    process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
+    "http://127.0.0.1:8000";
+  const normalized = base.replace(/\/$/, "");
+  const target = normalized || null;
+  if (!target) return null;
   try {
-    const res = await fetch(`${base}${path}`, {
+    const res = await fetch(`${target}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

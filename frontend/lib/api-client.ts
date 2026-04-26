@@ -1,6 +1,8 @@
 import type {
   ExperimentPlan,
   ExperimentPlanRequest,
+  HypothesesRequest,
+  HypothesesResult,
   LiteratureQCResult,
   PaperDetail,
   PaperPreview,
@@ -32,6 +34,21 @@ export async function fetchExperimentPlan(
   if (!res.ok) {
     const err = await res.text();
     throw new Error(err || "Plan generation failed");
+  }
+  return res.json();
+}
+
+export async function fetchHypotheses(
+  payload: HypothesesRequest
+): Promise<HypothesesResult> {
+  const res = await fetch("/api/hypotheses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || "Hypotheses generation failed");
   }
   return res.json();
 }

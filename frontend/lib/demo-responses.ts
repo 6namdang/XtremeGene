@@ -1,7 +1,9 @@
 import type {
   ExperimentPlan,
+  HypothesesResult,
   LiteratureQCResult,
   NoveltySignal,
+  ProteinModel,
 } from "./types";
 
 type Archetype =
@@ -159,6 +161,119 @@ export function buildLiteratureQC(question: string): LiteratureQCResult {
 
   while (references.length > 3) references.pop();
   return { novelty, summary, references };
+}
+
+function demoProteinModels(question: string): ProteinModel[] {
+  const q = question.toLowerCase();
+  const proteinRelated =
+    /(protein|fold|structure|alpha7|n?achr|receptor|enzyme|ric-?3)/i.test(q);
+  if (!proteinRelated) return [];
+
+  return [
+    {
+      id: "chrna7-human",
+      name: "Human alpha7 nAChR",
+      uniprotId: "P36544",
+      length: 502,
+      meanPlddt: 61.2,
+      confidenceLabel: "Low to medium (membrane receptor)",
+      summary:
+        "Predicted with moderate confidence in transmembrane segments; extracellular regions are less certain in monomer-only prediction.",
+    },
+    {
+      id: "ric3-celegans",
+      name: "C. elegans RIC-3",
+      uniprotId: "Q21375",
+      length: 369,
+      meanPlddt: 58.6,
+      confidenceLabel: "Low to medium (chaperone-like)",
+      summary:
+        "Contains flexible/disordered regions expected for trafficking chaperones; confidence improves in short structured motifs.",
+    },
+    {
+      id: "ric3-human",
+      name: "Human RIC-3",
+      uniprotId: "Q7Z7B1",
+      length: 369,
+      meanPlddt: 60.1,
+      confidenceLabel: "Low to medium (chaperone-like)",
+      summary:
+        "Similar confidence profile to C. elegans RIC-3, supporting comparative fold-function exploration.",
+    },
+  ];
+}
+
+export function buildHypothesesSuggestions(
+  question: string,
+  literature: LiteratureQCResult
+): HypothesesResult {
+  const archetype = detectArchetype(question);
+  const proteinModels = demoProteinModels(question);
+  const sourcesReviewed = Math.max(literature.references.length, 1) + proteinModels.length;
+
+  if (archetype === "default") {
+    return {
+      hypotheses: [
+        {
+          id: "1",
+          title: "Primary mechanism-first hypothesis",
+          description: question,
+          rationale:
+            "Retains your original claim to preserve intent while anchoring later protocol choices.",
+        },
+        {
+          id: "2",
+          title: "Conservative effect-size variant",
+          description:
+            "A reduced but measurable effect size is expected under controlled conditions, with stricter controls and narrower endpoint definitions.",
+          rationale:
+            "Improves feasibility when prior evidence suggests high variance or weak reproducibility.",
+        },
+        {
+          id: "3",
+          title: "Context-specific interaction hypothesis",
+          description:
+            "The intervention effect is strongest in a defined context (cell state, substrate, dose window, or timing) rather than across all conditions.",
+          rationale:
+            "Converts broad hypotheses into testable strata for clearer downstream interpretation.",
+        },
+      ],
+      proteinModels,
+      agent3Used: proteinModels.length > 0,
+      sourcesReviewed,
+    };
+  }
+
+  return {
+    hypotheses: [
+      {
+        id: "1",
+        title: "Performance-driven primary hypothesis",
+        description: question,
+        rationale:
+          "Highest alignment with the literature summary and keeps the explicit success threshold in scope.",
+      },
+      {
+        id: "2",
+        title: "Mechanism-confirmation hypothesis",
+        description:
+          "The observed effect is mediated by a specific mechanistic pathway that can be validated with orthogonal readouts.",
+        rationale:
+          "Pairs efficacy with mechanism to reduce false-positive interpretation from single-endpoint studies.",
+      },
+      {
+        id: "3",
+        title: "Robustness and translational hypothesis",
+        description:
+          "The effect remains significant across realistic perturbations (biological variability, matrix effects, and operational constraints).",
+        rationale:
+          "Prioritizes hypotheses with higher translational utility and lower execution risk.",
+      },
+    ],
+    proteinModels,
+    agent3Used: proteinModels.length > 0,
+    sourcesReviewed,
+  };
 }
 
 export function buildExperimentPlan(

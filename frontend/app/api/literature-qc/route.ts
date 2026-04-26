@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { buildLiteratureQC } from "@/lib/demo-responses";
 import { tryBackendJson } from "@/lib/backend-proxy";
 import type { LiteratureQCRequest, LiteratureQCResult } from "@/lib/types";
 
@@ -18,8 +17,11 @@ export async function POST(req: Request) {
     "/api/literature-qc",
     body
   );
-  if (remote) return NextResponse.json(remote);
-
-  const demo = buildLiteratureQC(body.question.trim());
-  return NextResponse.json(demo);
+  if (!remote) {
+    return NextResponse.json(
+      { error: "Backend literature QC unavailable. Start backend and verify OPENAI_API_KEY." },
+      { status: 502 }
+    );
+  }
+  return NextResponse.json(remote);
 }

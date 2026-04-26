@@ -72,6 +72,12 @@ export interface ExperimentPlan {
   };
   staffingNotes?: string[];
   riskMitigation?: string[];
+  executionReport?: string;
+  agentMetadata?: {
+    agent2Used: boolean;
+    agent4Used: boolean;
+    fallbackReasons?: string[];
+  };
 }
 
 export interface LiteratureQCRequest {
@@ -81,6 +87,18 @@ export interface LiteratureQCRequest {
 export interface ExperimentPlanRequest {
   question: string;
   literature: LiteratureQCResult;
+  proteinModels?: ProteinModel[];
+  plannerContext?: WetLabPlannerContext;
+}
+
+export interface WetLabPlannerContext {
+  budgetCapUsd?: number;
+  timelineWeeks?: number;
+  availableInstruments: string[];
+  availableMaterials: string[];
+  requiredMaterials: string[];
+  preferredAssays: string[];
+  notes?: string;
 }
 
 export interface PaperPreview {
@@ -111,4 +129,34 @@ export interface PaperDetail extends PaperPreview {
   text_sha256: string;
   figures: PaperFigure[];
   tables: PaperTable[];
+}
+
+export interface ProteinModel {
+  id: string;
+  name: string;
+  uniprotId: string;
+  length: number;
+  meanPlddt: number;
+  confidenceLabel: string;
+  summary: string;
+  structureSvgDataUri?: string;
+}
+
+export interface HypothesisSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  rationale: string;
+}
+
+export interface HypothesesRequest {
+  question: string;
+  literature: LiteratureQCResult;
+}
+
+export interface HypothesesResult {
+  hypotheses: HypothesisSuggestion[];
+  proteinModels: ProteinModel[];
+  agent3Used: boolean;
+  sourcesReviewed: number;
 }

@@ -19,7 +19,13 @@ type PaperRow = {
 
 const DEFAULT_N = 10;
 
-export function PaperEvidencePanel() {
+export function PaperEvidencePanel({
+  externalQuery,
+  autoStartKey,
+}: {
+  externalQuery?: string;
+  autoStartKey?: number;
+}) {
   const [query, setQuery] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [agent1Phase, setAgent1Phase] = useState<
@@ -38,6 +44,7 @@ export function PaperEvidencePanel() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const stopStreamRef = useRef<(() => void) | null>(null);
+  const lastAutoStartRef = useRef<number>(-1);
 
   useEffect(
     () => () => {
@@ -47,7 +54,8 @@ export function PaperEvidencePanel() {
     []
   );
 
-  const canStart = query.trim().length >= 3 && !streaming;
+  const effectiveQuery = query.trim().length > 0 ? query : externalQuery ?? "";
+  const canStartEffective = effectiveQuery.trim().length >= 3 && !streaming;
 
   const hasReadyRows = useMemo(
     () => rows.some((row) => row.status === "ready"),
@@ -89,8 +97,8 @@ export function PaperEvidencePanel() {
     setStreaming(false);
   }
 
-  function onStartFetch() {
-    const clean = query.trim();
+  function onStartFetch(nextQuery?: string) {
+    const clean = (nextQuery ?? effectiveQuery).trim();
     if (!clean || clean.length < 3) {
       setError("Please enter at least 3 characters.");
       return;
@@ -165,6 +173,16 @@ export function PaperEvidencePanel() {
     });
   }
 
+  useEffect(() => {
+    if (autoStartKey == null) return;
+    if (lastAutoStartRef.current === autoStartKey) return;
+    lastAutoStartRef.current = autoStartKey;
+    if (!externalQuery || externalQuery.trim().length < 3) return;
+    setTimeout(() => onStartFetch(externalQuery), 0);
+    // intentionally no deps on onStartFetch to avoid re-trigger loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStartKey, externalQuery]);
+
   async function onOpenDetail(row: PaperRow) {
     if (row.status !== "ready") return;
     setSelectedPmcid(row.pmcid);
@@ -208,15 +226,15 @@ export function PaperEvidencePanel() {
         </label>
         <input
           id="paper-query"
-          value={query}
+          value={effectiveQuery}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search open-access papers (e.g. alpha7 nicotinic receptor assembly)"
           className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 text-sm text-[var(--foreground)] placeholder:text-zinc-500 focus:border-emerald-500/40 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
         />
         <button
           type="button"
-          disabled={!canStart}
-          onClick={onStartFetch}
+          disabled={!canStartEffective}
+          onClick={() => onStartFetch()}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {streaming ? (
