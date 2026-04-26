@@ -18,6 +18,7 @@ import {
 import { fetchExperimentPlan, fetchHypotheses, fetchLiteratureQC } from "@/lib/api-client";
 import type { ExperimentPlan, HypothesisSuggestion, LiteratureQCResult } from "@/lib/types";
 import { NoveltyBadge, noveltyHelp } from "./novelty-badge";
+import { HeroSphere } from "./hero-sphere";
 
 const SAMPLE_QUESTIONS = [
   {
@@ -53,6 +54,7 @@ export function ExperimentWorkspace() {
   const [selectedSuggestion, setSelectedSuggestion] = useState<HypothesisSuggestion | null>(null);
   const [plan, setPlan] = useState<ExperimentPlan | null>(null);
   const [deselectedRefs, setDeselectedRefs] = useState<Set<string>>(new Set());
+  const [litKeywords, setLitKeywords] = useState<string>("");
   const [revealValidation, setRevealValidation] = useState(false);
   const [qcLoading, setQcLoading] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
@@ -61,7 +63,9 @@ export function ExperimentWorkspace() {
   const [activeSection, setActiveSection] =
     useState<(typeof SECTION_IDS)[number]>("overview");
   const [sliderHeight, setSliderHeight] = useState<number | undefined>(undefined);
+  const [heroMouse, setHeroMouse] = useState({ x: 0, y: 0, hovered: false });
   const slideRefs = useRef<(HTMLDivElement | null)[]>([null, null, null, null]);
+  const heroRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
 
   const charCount = question.length;
@@ -192,6 +196,12 @@ export function ExperimentWorkspace() {
   }, [stepIndex]);
 
   useEffect(() => {
+    if (!mainRef.current) return;
+    const top = mainRef.current.getBoundingClientRect().top + window.scrollY - 56;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, [stepIndex]);
+
+  useEffect(() => {
     if (!plan) return;
     const ids = SECTION_IDS.map((id) => `section-${id}`);
     const els = ids
@@ -223,36 +233,8 @@ export function ExperimentWorkspace() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/5">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 text-white/90"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                >
-                  <path
-                    d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M4 12.5L12 9L20 12.5L12 16L4 12.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                    opacity="0.8"
-                  />
-                  <path
-                    d="M4 17.5L12 14L20 17.5L12 21L4 17.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                    opacity="0.6"
-                  />
-                </svg>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.jpeg" alt="FoldForward" className="h-[54px] w-[54px] rounded-lg object-contain" style={{ filter: "invert(1)" }} />
               <p className="text-[22px] font-medium tracking-[-0.02em] text-white">
                 <span className="font-semibold">Fold</span>
                 <span className="font-normal text-white/90">Forward</span>
@@ -266,30 +248,58 @@ export function ExperimentWorkspace() {
         </div>
       </header>
 
-      <section className="flex min-h-[calc(100vh-49px)] flex-col items-center justify-center px-4 py-20 text-center">
-        <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs tracking-wide text-zinc-400">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          AI-native science
+      <section
+        ref={heroRef}
+        className="relative flex min-h-[calc(100vh-49px)] flex-col items-center justify-center overflow-hidden px-4 py-20 text-center"
+        onMouseMove={(e) => {
+          if (!heroRef.current) return;
+          const r = heroRef.current.getBoundingClientRect();
+          setHeroMouse({
+            x:       ((e.clientX - r.left) / r.width)  * 2 - 1,
+            y:      -((e.clientY - r.top)  / r.height) * 2 + 1,
+            hovered: true,
+          });
+        }}
+        onMouseLeave={() => setHeroMouse({ x: 0, y: 0, hovered: false })}
+      >
+        <div className="pointer-events-none absolute inset-0" style={{ opacity: 0.55 }}>
+          <HeroSphere mouseX={heroMouse.x} mouseY={heroMouse.y} isHovered={heroMouse.hovered} />
         </div>
-        <h1 className="max-w-2xl text-[44px] font-semibold tracking-[-0.03em] text-white sm:text-[68px] sm:leading-[0.93]">
-          <span className="block">Research question to</span>
-          <span className="block text-white/70">runnable experiment.</span>
-        </h1>
-        <p className="mt-5 text-[18px] font-light tracking-[-0.01em] text-zinc-400">
-          One question. Fifteen AI-agents. A complete experiment plan.
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            if (!mainRef.current) return;
-            const top = mainRef.current.getBoundingClientRect().top + window.scrollY - 56;
-            window.scrollTo({ top, behavior: "smooth" });
-          }}
-          className="mt-10 inline-flex items-center gap-2.5 rounded-2xl bg-emerald-500 px-7 py-3.5 text-[15px] font-semibold text-emerald-950 shadow-xl shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-[0.98]"
-        >
-          Ask a research question
-          <ArrowDown className="h-4 w-4" />
-        </button>
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs tracking-wide text-zinc-400">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            AI-native science
+          </div>
+          <h1 className="max-w-2xl text-[44px] font-semibold tracking-[-0.03em] text-white sm:text-[68px] sm:leading-[0.93]">
+            <span
+              className="block transition-transform duration-700 ease-out"
+              style={{ transform: `translate(${heroMouse.x * -18}px, ${heroMouse.y * -10}px)` }}
+            >
+              Research question to
+            </span>
+            <span
+              className="block text-white/70 transition-transform duration-700 ease-out"
+              style={{ transform: `translate(${heroMouse.x * -8}px, ${heroMouse.y * -5}px)` }}
+            >
+              runnable experiment.
+            </span>
+          </h1>
+          <p className="mt-5 text-[18px] font-light tracking-[-0.01em] text-zinc-400">
+            One question. Fifteen AI-agents. A complete experiment plan.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (!mainRef.current) return;
+              const top = mainRef.current.getBoundingClientRect().top + window.scrollY - 56;
+              window.scrollTo({ top, behavior: "smooth" });
+            }}
+            className="mt-10 inline-flex items-center gap-2.5 rounded-2xl bg-emerald-500 px-7 py-3.5 text-[15px] font-semibold text-emerald-950 shadow-xl shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-[0.98]"
+          >
+            Ask a research question
+            <ArrowDown className="h-4 w-4" />
+          </button>
+        </div>
       </section>
 
       <main ref={mainRef} className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -413,7 +423,7 @@ export function ExperimentWorkspace() {
                   }`}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <h2 className="text-xl font-semibold tracking-[-0.02em] text-white">
-                        Literature QC
+                        Literature
                       </h2>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${
                         literature.novelty === "exact_match_found"
@@ -501,6 +511,19 @@ export function ExperimentWorkspace() {
                       </ul>
                     </div>
                   )}
+
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 sm:p-6">
+                    <label className="mb-2 block text-sm font-semibold tracking-[-0.01em] text-white">
+                      Refine literature search
+                    </label>
+                    <input
+                      type="text"
+                      value={litKeywords}
+                      onChange={(e) => setLitKeywords(e.target.value)}
+                      placeholder="Add keywords to narrow results — e.g. assay type, model organism, target pathway, cell line…"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
+                    />
+                  </div>
 
                   <div>
                     <button
@@ -844,7 +867,7 @@ export function ExperimentWorkspace() {
                     </h3>
                     <dl className="mt-4 space-y-3 text-sm">
                       <div className="flex justify-between gap-3">
-                        <dt className="text-[var(--muted)]">QC status</dt>
+                        <dt className="text-[var(--muted)]">Check status</dt>
                         <dd className="font-medium text-[var(--foreground)]">
                           {literature ? "Complete" : "—"}
                         </dd>
@@ -949,7 +972,7 @@ function StepTracker({
     },
     {
       n: "02",
-      title: "Validation",
+      title: "Literature Check",
       active: step === "literature",
       locked: !canOpenValidation,
       onClick: onOpenValidation,
