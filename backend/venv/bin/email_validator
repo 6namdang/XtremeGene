@@ -1,4 +1,4 @@
-#!/Users/hoangdang/Downloads/XtremeGene/backend/venv/bin/python3.12
+#!/Users/hoangdang/Documents/XtremeGene/backend/venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
