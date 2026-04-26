@@ -28,6 +28,7 @@ import type {
   ProteinModel,
   WetLabPlannerContext,
 } from "@/lib/types";
+import { HeroSphere } from "./hero-sphere";
 import { Markdown } from "./markdown";
 import { noveltyHelp } from "./novelty-badge";
 import { PaperEvidencePanel } from "./paper-evidence-panel";
@@ -86,7 +87,10 @@ export function ExperimentWorkspace() {
   });
   const [evidenceAutoStartKey, setEvidenceAutoStartKey] = useState(0);
   const [sliderHeight, setSliderHeight] = useState<number | undefined>(undefined);
+  const [litKeywords, setLitKeywords] = useState<string>("");
+  const [heroMouse, setHeroMouse] = useState({ x: 0, y: 0, hovered: false });
   const slideRefs = useRef<(HTMLDivElement | null)[]>([null, null, null, null]);
+  const heroRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
 
   const canRunQc = question.trim().length >= 20;
@@ -104,28 +108,34 @@ export function ExperimentWorkspace() {
     else if (step === "plan") setStep("hypotheses");
   }, [step]);
 
-  const runLiteratureQc = useCallback(async () => {
-    setError(null);
-    setQcLoading(true);
-    setRevealValidation(false);
-    setLiterature(null);
-    setSuggestions(null);
-    setSelectedSuggestion(null);
-    setProteinModels([]);
-    setPlan(null);
-    try {
-      const res = await fetchLiteratureQC(question.trim());
-      setLiterature(res);
-      setDeselectedRefs(new Set());
-      setTimeout(() => setRevealValidation(true), 30);
-      setEvidenceAutoStartKey((k) => k + 1);
-      setStep("literature");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setQcLoading(false);
-    }
-  }, [question]);
+  const runLiteratureQc = useCallback(
+    async (extraKeywords?: string) => {
+      setError(null);
+      setQcLoading(true);
+      setRevealValidation(false);
+      setLiterature(null);
+      setSuggestions(null);
+      setSelectedSuggestion(null);
+      setProteinModels([]);
+      setPlan(null);
+      try {
+        const merged = [question.trim(), extraKeywords?.trim()]
+          .filter(Boolean)
+          .join(" ");
+        const res = await fetchLiteratureQC(merged);
+        setLiterature(res);
+        setDeselectedRefs(new Set());
+        setTimeout(() => setRevealValidation(true), 30);
+        setEvidenceAutoStartKey((k) => k + 1);
+        setStep("literature");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Something went wrong");
+      } finally {
+        setQcLoading(false);
+      }
+    },
+    [question]
+  );
 
   const runHypotheses = useCallback(async () => {
     if (!literature) return;
@@ -188,6 +198,7 @@ export function ExperimentWorkspace() {
     setRevealValidation(false);
     setError(null);
     setActiveSection("overview");
+    setLitKeywords("");
     setPlannerContext({
       budgetCapUsd: 15000,
       timelineWeeks: 8,
@@ -231,6 +242,12 @@ export function ExperimentWorkspace() {
   }, [stepIndex, suggestions, proteinModels, plan]);
 
   useEffect(() => {
+    if (!mainRef.current) return;
+    const top = mainRef.current.getBoundingClientRect().top + window.scrollY - 56;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, [stepIndex]);
+
+  useEffect(() => {
     if (!plan) return;
     const ids = SECTION_IDS.map((id) => `section-${id}`);
     const els = ids
@@ -261,19 +278,13 @@ export function ExperimentWorkspace() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/5">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 text-white/90"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                >
-                  <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                  <path d="M4 12.5L12 9L20 12.5L12 16L4 12.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" opacity="0.8" />
-                  <path d="M4 17.5L12 14L20 17.5L12 21L4 17.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" opacity="0.6" />
-                </svg>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.jpeg"
+                alt="FoldForward"
+                className="h-[54px] w-[54px] rounded-lg object-contain"
+                style={{ filter: "invert(1)" }}
+              />
               <p className="text-[22px] font-medium tracking-[-0.02em] text-white">
                 <span className="font-semibold">Fold</span>
                 <span className="font-normal text-white/90">Forward</span>
@@ -287,30 +298,67 @@ export function ExperimentWorkspace() {
         </div>
       </header>
 
-      <section className="flex min-h-[calc(100vh-49px)] flex-col items-center justify-center px-4 py-20 text-center">
-        <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs tracking-wide text-zinc-400">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          AI-native science
+      <section
+        ref={heroRef}
+        className="relative flex min-h-[calc(100vh-49px)] flex-col items-center justify-center overflow-hidden px-4 py-20 text-center"
+        onMouseMove={(e) => {
+          if (!heroRef.current) return;
+          const r = heroRef.current.getBoundingClientRect();
+          setHeroMouse({
+            x: ((e.clientX - r.left) / r.width) * 2 - 1,
+            y: -((e.clientY - r.top) / r.height) * 2 + 1,
+            hovered: true,
+          });
+        }}
+        onMouseLeave={() => setHeroMouse({ x: 0, y: 0, hovered: false })}
+      >
+        <div className="pointer-events-none absolute inset-0" style={{ opacity: 0.55 }}>
+          <HeroSphere
+            mouseX={heroMouse.x}
+            mouseY={heroMouse.y}
+            isHovered={heroMouse.hovered}
+          />
         </div>
-        <h1 className="max-w-2xl text-[44px] font-semibold tracking-[-0.03em] text-white sm:text-[68px] sm:leading-[0.93]">
-          <span className="block">Research question to</span>
-          <span className="block text-white/70">runnable experiment.</span>
-        </h1>
-        <p className="mt-5 text-[18px] font-light tracking-[-0.01em] text-zinc-400">
-          One question. Multi-agent orchestration. Wetlab-ready plan.
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            if (!mainRef.current) return;
-            const top = mainRef.current.getBoundingClientRect().top + window.scrollY - 56;
-            window.scrollTo({ top, behavior: "smooth" });
-          }}
-          className="mt-10 inline-flex items-center gap-2.5 rounded-2xl bg-emerald-500 px-7 py-3.5 text-[15px] font-semibold text-emerald-950 shadow-xl shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-[0.98]"
-        >
-          Ask a research question
-          <ArrowDown className="h-4 w-4" />
-        </button>
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs tracking-wide text-zinc-400">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            AI-native science
+          </div>
+          <h1 className="max-w-2xl text-[44px] font-semibold tracking-[-0.03em] text-white sm:text-[68px] sm:leading-[0.93]">
+            <span
+              className="block transition-transform duration-700 ease-out"
+              style={{
+                transform: `translate(${heroMouse.x * -18}px, ${heroMouse.y * -10}px)`,
+              }}
+            >
+              Research question to
+            </span>
+            <span
+              className="block text-white/70 transition-transform duration-700 ease-out"
+              style={{
+                transform: `translate(${heroMouse.x * -8}px, ${heroMouse.y * -5}px)`,
+              }}
+            >
+              runnable experiment.
+            </span>
+          </h1>
+          <p className="mt-5 text-[18px] font-light tracking-[-0.01em] text-zinc-400">
+            One question. Multi-agent orchestration. Wetlab-ready plan.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (!mainRef.current) return;
+              const top =
+                mainRef.current.getBoundingClientRect().top + window.scrollY - 56;
+              window.scrollTo({ top, behavior: "smooth" });
+            }}
+            className="mt-10 inline-flex items-center gap-2.5 rounded-2xl bg-emerald-500 px-7 py-3.5 text-[15px] font-semibold text-emerald-950 shadow-xl shadow-emerald-500/20 transition hover:bg-emerald-400 active:scale-[0.98]"
+          >
+            Ask a research question
+            <ArrowDown className="h-4 w-4" />
+          </button>
+        </div>
       </section>
 
       <main ref={mainRef} className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -386,7 +434,7 @@ export function ExperimentWorkspace() {
                   <button
                     type="button"
                     disabled={!canRunQc || qcLoading}
-                    onClick={runLiteratureQc}
+                    onClick={() => runLiteratureQc()}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {qcLoading ? (
@@ -423,7 +471,7 @@ export function ExperimentWorkspace() {
                   }`}
                 >
                   <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 sm:p-6">
-                    <h2 className="text-xl font-semibold tracking-[-0.02em] text-white">Literature QC</h2>
+                    <h2 className="text-xl font-semibold tracking-[-0.02em] text-white">Literature</h2>
                     <p className="mt-2 text-sm text-zinc-400">{noveltyHelp(literature.novelty)}</p>
                     <p className="mt-3 text-sm leading-relaxed text-zinc-300">{literature.summary}</p>
                   </div>
@@ -518,6 +566,32 @@ export function ExperimentWorkspace() {
                       </ul>
                     </div>
                   )}
+
+                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 sm:p-6">
+                    <label
+                      htmlFor="lit-keywords"
+                      className="mb-2 block text-sm font-semibold tracking-[-0.01em] text-white"
+                    >
+                      Refine literature search
+                    </label>
+                    <p className="mb-3 text-xs text-zinc-500">
+                      Press Enter to re-run the search with these keywords appended.
+                    </p>
+                    <input
+                      id="lit-keywords"
+                      type="text"
+                      value={litKeywords}
+                      onChange={(e) => setLitKeywords(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter" || qcLoading) return;
+                        e.preventDefault();
+                        if (!litKeywords.trim()) return;
+                        runLiteratureQc(litKeywords);
+                      }}
+                      placeholder="Add keywords to narrow results — e.g. assay type, model organism, target pathway, cell line…"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-500/40 focus:outline-none focus:ring-4 focus:ring-emerald-500/15"
+                    />
+                  </div>
 
                   <div>
                     <button
@@ -902,7 +976,7 @@ function StepTracker({
 }) {
   const items = [
     { n: "01", title: "Question", active: step === "input", locked: false, onClick: onOpenHypothesis },
-    { n: "02", title: "Validation", active: step === "literature", locked: !canOpenValidation, onClick: onOpenValidation },
+    { n: "02", title: "Literature Check", active: step === "literature", locked: !canOpenValidation, onClick: onOpenValidation },
     { n: "03", title: "Hypotheses", active: step === "hypotheses", locked: !canOpenHypotheses, onClick: onOpenHypotheses },
     { n: "04", title: "Experiment", active: step === "plan", locked: !canOpenPlan, onClick: onOpenPlan },
   ] as const;
