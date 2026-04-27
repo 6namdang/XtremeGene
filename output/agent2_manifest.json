@@ -1,0 +1,44 @@
+{
+  "generated": "2026-04-25T20:58:15.334675",
+  "sequences": {
+    "human_alpha7": {
+      "id": "P36544",
+      "len": 502,
+      "status": "ok"
+    },
+    "celegans_RIC3": {
+      "id": "Q21375",
+      "len": 686,
+      "status": "ok"
+    },
+    "human_RIC3": {
+      "id": "Q7Z7B1",
+      "len": 504,
+      "status": "ok"
+    }
+  },
+  "structures": {
+    "human_alpha7": {
+      "status": "ok",
+      "files": [
+        "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/CHRNA7_HUMAN_part1_esmfold.pdb",
+        "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/CHRNA7_HUMAN_part2_esmfold.pdb"
+      ]
+    },
+    "celegans_RIC3": {
+      "status": "ok",
+      "files": [
+        "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/RIC3_CAEEL_part1_esmfold.pdb",
+        "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/RIC3_CAEEL_part2_esmfold.pdb"
+      ]
+    },
+    "human_RIC3": {
+      "status": "ok",
+      "files": [
+        "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/RIC3_HUMAN_part1_esmfold.pdb",
+        "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/RIC3_HUMAN_part2_esmfold.pdb"
+      ]
+    }
+  },
+  "viewer": "/mnt/c/Users/iraqu/OneDrive/Documents/Aleena/hacknation_ai/agent2/output/structures_report.html"
+}
